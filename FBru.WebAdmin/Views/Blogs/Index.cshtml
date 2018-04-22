@@ -1,0 +1,85 @@
+﻿@model IEnumerable<FBru.DTO.BlogSimpleDetailDto>
+@{
+    ViewBag.Title = "Blogs";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section styles {
+    @Styles.Render("~/content/datatables")
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        @Html.AntiForgeryToken()
+        <div class="form-group">@Html.ActionLink("CREATE BLOG", "Create", null, new {@class = "btn btn-success btn-sm"})</div>
+        <table id="blogsTable" class="table table-bordered table-responsive table-striped" width="100%">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Published Date</th>
+                <th>Author</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Title</td>
+                    <td>@item.PublishedDate.ToShortDateString()</td>
+                    <td>@item.Author</td>
+                    <td>
+                        @Html.ActionLink("Edit", "Edit", new {id = item.Id}, new {@class = "btn btn-sm btn-warning"})
+                        @Html.ActionLink("Detail", "Detail", new {id = item.Id}, new {@class = "btn btn-sm btn-info"})
+                        <button class="btn btn-sm btn-danger btn-delete" data-blog-id="@item.Id">Delete</button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+@section scripts {
+    @Scripts.Render("~/bundles/datatables")
+    <script>
+        $(document).ready(function() {
+            var table = $("#blogsTable").DataTable({
+                responsive: true
+            });
+
+            $("#blogsTable .btn-delete").on("click",
+                function() {
+                    var button = $(this);
+                    bootbox.confirm("Are you sure you want to delete this blog?",
+                        function(result) {
+                            if (result) {
+                                var addAntiForgeryToken = function(data) {
+                                    data.__RequestVerificationToken = $("[name='__RequestVerificationToken']").val();
+                                    return data;
+                                };
+                                $.ajax({
+                                    url: "/Blogs/Delete",
+                                    data: addAntiForgeryToken({ id: button.attr("data-blog-id") }),
+                                    method: "POST"
+                                }).done(function(data) {
+                                    if (data.Status === true) {
+                                        table.row(button.parents("tr")).remove().draw();
+                                        toastr.success(data.Message);
+                                    }
+                                    if (data.Status === false && data.BadRequest === true) {
+                                        toastr.error(data.Message);
+                                        setTimeout(function() {
+                                                window.location.href = window.location.origin + data.ReturnUrl;
+                                            },
+                                            1000);
+                                    }
+                                }).fail(function() {
+                                    toastr.error("Something unexpected happend!");
+                                });
+                            }
+                        });
+                });
+        });
+    </script>
+}

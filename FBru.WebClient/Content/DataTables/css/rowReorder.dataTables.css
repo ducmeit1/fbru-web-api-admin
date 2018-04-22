@@ -1,0 +1,20 @@
+table.dt-rowReorder-float {
+    opacity: 0.8;
+    outline: 2px solid #888;
+    outline-offset: -2px;
+    position: absolute !important;
+    table-layout: fixed;
+    z-index: 2001;
+}
+
+tr.dt-rowReorder-moving {
+    outline: 2px solid #555;
+    outline-offset: -2px;
+}
+
+body.dt-rowReorder-noOverflow { overflow-x: hidden; }
+
+table.dataTable td.reorder {
+    cursor: move;
+    text-align: center;
+}

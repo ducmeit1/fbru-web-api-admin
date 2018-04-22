@@ -1,0 +1,73 @@
+﻿@model FBru.DTO.RestaurantWithDishesHaveCategoryDto
+@{
+    Layout = "../Shared/_Layout.cshtml";
+    ViewBag.Title = Model.Name;
+}
+@section styles {
+    @Styles.Render("~/content/datatables")
+}
+<div class="row" id="restaurant">
+    <div class="col-sm-12">
+        <div class="card">
+            <img class="img-responsive" src="http://fbru.azurewebsites.net/@Model.ImageUrl" alt="Card image">
+            <div class="card-img-overlay">
+                <h1 class="card-title">@Model.Name</h1>
+                <h4 class="card-title"><i class="fa fa-cutlery" aria-hidden="true"></i> @Model.NumberOfDishes Menu(s)</h4>
+                <div class="card-detail">
+                    <p class="card-text" style="bottom: 55px;">
+                        <i class="fa fa-mobile-phone" aria-hidden="true"></i> @Model.PhoneNumber</p>
+                    <p class="card-text" style="bottom: 25px;"><i class="fa fa-clock-o" aria-hidden="true"></i> @Model.OpenTime - @Model.CloseTime</p>
+                    <p class="card-text" style="bottom: 5px;">
+                        <i class="fa fa-map-marker" aria-hidden="true"></i> @Model.Address</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@if (Model.Description != null)
+{
+    <div class="group">
+        <h3 class="margin-top-30">Description</h3>
+
+        <div class="panel panel-default">
+            <div class="panel-body panel-fixed">
+                @Html.Raw(HttpUtility.HtmlDecode(Model.Description))
+            </div>
+        </div>
+    </div>
+}
+
+<div class="group">
+    <h3 class="margin-top-30">Dishes</h3>
+</div>
+
+<table id="dishesTable" class="table table-striped table-bordered table-hover" width="100%">
+    <thead>
+    <tr>
+        <td>Name</td>
+        <td>Image</td>
+        <td>Category</td>
+        <td>Price</td>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model.Dishes)
+    {
+        <tr>
+            <td>@Html.ActionLink(item.Name, "Detail", "Dishes", new {id = item.Id}, new {@class = "btn-link"})</td>
+            <td>@Html.Raw($"<img src='http://fbru.azurewebsites.net/{item.ImageUrl}' class='img-responsive' style='max-width: 200px' />")</td>
+            <td>@Html.ActionLink(item.Category.Name, "Detail", "Categories", new {id = item.Category.Id}, new {@class = "btn-link"})</td>
+            <td>@item.Price BND</td>
+        </tr>
+    }
+    </tbody>
+</table>
+@section scripts {
+    @Scripts.Render("~/bundles/datatables")
+    <script>
+        $("#dishesTable").DataTable({
+            responsive: true,
+            bSort: true
+        });
+    </script>
+}

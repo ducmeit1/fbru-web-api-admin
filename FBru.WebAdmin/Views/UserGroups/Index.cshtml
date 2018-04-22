@@ -1,0 +1,43 @@
+﻿@model IEnumerable<FBru.DTO.UserGroupWithUserCountedDto>
+@{
+    ViewBag.Title = "User Groups";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section styles {
+    @Styles.Render("~/content/datatables")
+}
+<div class="row">
+    <div class="col-sm-12">
+        @Html.AntiForgeryToken()
+        <table id="userGroupsTable" class="table table-bordered table-responsive table-striped" width="100%">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Users</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Name</td>
+                    <td>@item.NumberOfUsers</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+@section scripts {
+    @Scripts.Render("~/bundles/datatables")
+    <script>
+        $(document).ready(function() {
+            var table = $("#userGroupsTable").DataTable({
+                responsive: true,
+                bSort: true
+            });
+        });
+    </script>
+}

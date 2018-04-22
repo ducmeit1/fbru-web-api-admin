@@ -1,0 +1,11 @@
+table.DTCR_clonedTable.dataTable {
+    background-color: rgba(255, 255, 255, 0.7);
+    position: absolute !important;
+    z-index: 202;
+}
+
+div.DTCR_pointer {
+    background-color: #888;
+    width: 1px;
+    z-index: 201;
+}

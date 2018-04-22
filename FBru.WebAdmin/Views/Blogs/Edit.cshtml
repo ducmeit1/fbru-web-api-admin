@@ -1,0 +1,140 @@
+﻿@model FBru.Repository.Entities.Blog
+
+@{
+    ViewBag.Title = "Edit";
+    ViewBag.SubTitle = "Fill in all informations to update for this blog";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section styles {
+    @Styles.Render("~/content/datepicker")
+}
+<div class="row">
+    <div class="col-sm-12">
+        <form id="editBlog">
+            @Html.AntiForgeryToken()
+            <div class="form-horizontal">
+                @Html.ValidationSummary(true, "", new {@class = "text-danger"})
+                @Html.HiddenFor(model => model.Id)
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Title, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.Title, new {htmlAttributes = new {@class = "form-control"}})
+                        @Html.ValidationMessageFor(model => model.Title, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Description, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @if (Model.Description != null)
+                        {
+                            var Description = HttpUtility.HtmlDecode(Model.Description);
+                            @Html.TextAreaFor(model => Description, new {htmlAttributes = new {@class = "form-control"}})
+                        }
+                        else
+                        {
+                            @Html.TextAreaFor(model => model.Description, new {htmlAttributes = new {@class = "form-control"}})
+                        }
+                        @Html.ValidationMessageFor(model => model.Description, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.PublishedDate, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.TextBoxFor(model => model.PublishedDate, new {@class = "form-control"})
+                        @Html.ValidationMessageFor(model => model.PublishedDate, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Author, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.TextBoxFor(model => model.Author, new {@class = "form-control"})
+                        @Html.ValidationMessageFor(model => model.Author, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <button class="btn btn-success btn-sm">Save</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <hr/>
+        <div>
+            @Html.ActionLink("Back to List", "Index")
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/datepicker")
+    @Scripts.Render("~/bundles/ckeditor")
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+        CKEDITOR.replace("Description",
+            {
+                htmlEncodeOutput: true
+            });
+
+        $("#PublishedDate").datepicker({
+            todayButton: new Date()
+        });
+
+        $("#editBlog").validate();
+
+        $("#editBlog").submit(function(e) {
+            e.preventDefault();
+
+            for (instance in CKEDITOR.instances) {
+                CKEDITOR.instances[instance].updateElement();
+            }
+
+            var vm = {
+                Id: $("#Id").val(),
+                Title: $("#Title").val(),
+                Description: $("#Description").val(),
+                PublishedDate: $("#PublishedDate").val(),
+                Author: $("#Author").val(),
+                __RequestVerificationToken: $("[name='__RequestVerificationToken']").val()
+            };
+
+            $.ajax({
+                url: "/Blogs/Edit",
+                method: "POST",
+                data: vm
+            }).done(function(data) {
+                console.log(data);
+                if (data.Status === true) {
+                    toastr.success(data.Message);
+                    setTimeout(function() {
+                            window.location.href = window.location.origin + data.ReturnUrl;
+                        },
+                        2000);
+                }
+                if (data.Status === false && data.BadRequest === true) {
+                    toastr.error(data.Message);
+                    setTimeout(function() {
+                            window.location.href = window.location.origin + data.ReturnUrl;
+                        },
+                        1000);
+                }
+                if (data.Status === false && data.BadRequest === false) {
+                    toastr.error(data.Message);
+                    if (data.ReturnUrl != null) {
+                        setTimeout(function() {
+                                window.location.href = window.location.origin + data.ReturnUrl;
+                            },
+                            1000);
+                    }
+                }
+            }).fail(function() {
+                toastr.error("Something unexpected happend!");
+            });
+        });
+    </script>
+}

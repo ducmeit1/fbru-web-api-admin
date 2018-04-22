@@ -1,0 +1,173 @@
+﻿@model FBru.Repository.Entities.Advertisement
+@{
+    ViewBag.Title = "Edit";
+    ViewBag.SubTitle = "Fill in information necessary for update to this advertisement";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <form id="editAdvertisement" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+
+            <div class="form-horizontal">
+                @Html.ValidationSummary(true, "", new {@class = "text-danger"})
+                @Html.HiddenFor(model => model.Id)
+                <div class="form-group">
+                    <label name="ImageUrl" class="control-label col-md-2">Current Image</label>
+                    <div class="col-md-10">
+                        <img src="~/@Model.ImageUrl" class="img-responsive img-rounded"/>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Order, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.Order, new {htmlAttributes = new {@class = "form-control"}})
+                        @Html.ValidationMessageFor(model => model.Order, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Title, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.Title, new {htmlAttributes = new {@class = "form-control"}})
+                        @Html.ValidationMessageFor(model => model.Title, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.SubTitle, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.SubTitle, new {htmlAttributes = new {@class = "form-control"}})
+                        @Html.ValidationMessageFor(model => model.SubTitle, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Description, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @if (Model.Description != null)
+                        {
+                            var Description = HttpUtility.HtmlDecode(Model.Description);
+                            @Html.TextAreaFor(model => Description, new {htmlAttributes = new {@class = "form-control"}})
+                        }
+                        else
+                        {
+                            @Html.TextAreaFor(model => model.Description, new {htmlAttributes = new {@class = "form-control"}})
+                        }
+                        @Html.ValidationMessageFor(model => model.Description, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="ImagePostedFileBase" class="control-label col-md-2">Upload Image</label>
+                    <div class="col-md-10">
+                        <input id="ImagePostedFileBase" type="file" name="ImagePostedFileBase" accept="image/*" class="form-control"/>
+                        @Html.ValidationMessage("ImagePostedFileBase", "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ActionUrl, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.ActionUrl, new {htmlAttributes = new {@class = "form-control"}})
+                        @Html.ValidationMessageFor(model => model.ActionUrl, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.IsDisplay, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        <div class="checkbox" style="margin-left: 20px">
+                            @Html.EditorFor(model => model.IsDisplay)
+                            @Html.ValidationMessageFor(model => model.IsDisplay, "", new {@class = "text-danger"})
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <input type="submit" value="Save" class="btn btn-success btn-sm"/>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <hr/>
+        <div>
+            @Html.ActionLink("Back to List", "Index")
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    @Scripts.Render("~/bundles/ckeditor")
+    <script>
+        $(document).ready(function() {
+            CKEDITOR.replace("Description",
+                {
+                    htmlEncodeOutput: true
+                });
+
+
+            $("#editAdvertisement").validate();
+
+            $("#editAdvertisement").submit(function(e) {
+                e.preventDefault();
+
+                for (instance in CKEDITOR.instances) {
+                    CKEDITOR.instances[instance].updateElement();
+                }
+
+                var filesSelected = $("#ImagePostedFileBase").get(0).files;
+                var formData = new FormData();
+                formData.append("Id", $("#Id").val());
+                formData.append("Order", $("#Order").val());
+                formData.append("Title", $("#Title").val());
+                formData.append("SubTitle", $("#SubTitle").val());
+                formData.append("ActionUrl", $("#ActionUrl").val());
+                formData.append("Description", $("#Description").val());
+                formData.append("IsDisplay", $("#IsDisplay").is(":checked"));
+                formData.append("FileUpload", filesSelected[0]);
+                formData.append("__RequestVerificationToken", $("[name='__RequestVerificationToken']").val());
+
+
+                $.ajax({
+                    url: "/Advertisements/Edit",
+                    method: "post",
+                    data: formData,
+                    dataType: "json",
+                    processData: false,
+                    contentType: false
+                }).done(function(data) {
+                    if (data.Status === true) {
+                        toastr.success(data.Message);
+                        setTimeout(function() {
+                                window.location.href = window.location.origin + data.ReturnUrl;
+                            },
+                            1000);
+                    }
+                    if (data.Status === false && data.BadRequest === true) {
+                        toastr.error(data.Message);
+                        setTimeout(function() {
+                                window.location.href = window.location.origin + data.ReturnUrl;
+                            },
+                            1000);
+                    }
+                    if (data.Status === false && data.BadRequest === false) {
+                        toastr.error(data.Message);
+                        if (data.ReturnUrl != null) {
+                            setTimeout(function() {
+                                    window.location.href = window.location.origin + data.ReturnUrl;
+                                },
+                                1000);
+                        }
+                    }
+                }).fail(function() {
+                    toastr.error("Something unexpected happend!");
+                });
+            });
+        });
+    </script>
+}

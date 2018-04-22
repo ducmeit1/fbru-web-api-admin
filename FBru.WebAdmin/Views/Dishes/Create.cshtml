@@ -1,0 +1,217 @@
+﻿@model FBru.WebAdmin.Models.DishModel
+
+@{
+    ViewBag.Title = "Create";
+    ViewBag.SubTitle = "Fill in all information to create a new delicious dish";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+    <div class="col-sm-12">
+        <form id="addDish">
+            @Html.AntiForgeryToken()
+            <div class="form-horizontal">
+                @Html.ValidationSummary(true, "", new {@class = "text-danger"})
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Name, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.Name, new {htmlAttributes = new {@class = "form-control"}})
+                        @Html.ValidationMessageFor(model => model.Name, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Description, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.TextAreaFor(model => model.Description, new {htmlAttributes = new {@class = "form-control"}})
+                        @Html.ValidationMessageFor(model => model.Description, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Price, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.Price, new {htmlAttributes = new {@class = "form-control"}})
+                        @Html.ValidationMessageFor(model => model.Price, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.CategoryId, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.DropDownList("CategoryId", null, new {@class = "form-control"})
+                        @Html.ValidationMessageFor(model => model.CategoryId, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.RestaurantId, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.DropDownList("RestaurantId", null, new {@class = "form-control"})
+                        @Html.ValidationMessageFor(model => model.RestaurantId, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.KeywordIds, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        <input id="keyword" type="text" class="form-control typeahead"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <button class="btn btn-success btn-sm">Submit</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-12">
+                    <ul id="keywordsTable" class="list-group list-inline"></ul>
+                </div>
+            </div>
+
+
+        </form>
+        <hr/>
+        <div>
+            @Html.ActionLink("Back to List", "Index")
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/typeahead")
+    @Scripts.Render("~/bundles/ckeditor")
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+        $(document).ready(function() {
+
+            CKEDITOR.replace("Description",
+                {
+                    htmlEncodeOutput: true
+                });
+
+            var keywordsIdArray = [];
+
+            var keywords = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('Name'),
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: {
+                    url: '/Dishes/GetKeywords?query=%QUERY',
+                    wildcard: '%QUERY'
+                }
+            });
+
+            $('#keyword').typeahead({
+                    minLength: 2,
+                    highlight: true
+                },
+                {
+                    name: 'KeywordModel',
+                    display: 'Name',
+                    source: keywords,
+                    templates: {
+                        empty: [
+                            '<div class="empty-message text-danger">',
+                            'Unable to find any keyword that match with your query',
+                            '</div>'
+                        ].join('\n')
+                    }
+                }).on("typeahead:select",
+                function(e, keyword) {
+
+                    if ($.inArray(keyword.Id, keywordsIdArray) !== -1) {
+
+                        $("#keyword").typeahead("val", "");
+
+                        toastr.error("That keyword is already in your list!");
+                    } else {
+                        $("#keywordsTable").append("<li class='list-group-item'>" +
+                            "<a href='/Keywords/Detail/" +
+                            keyword.Id +
+                            "'><span class='text-info'>" +
+                            keyword.Name +
+                            "</span></a>" +
+                            "<a href='#' data-keyword-id='" +
+                            keyword.Id +
+                            "' class='btn-delete-keyword'><i class='fa fa-remove text-danger'></i></a>" +
+                            "</li>");
+
+                        $("#keyword").typeahead("val", "");
+
+                        keywordsIdArray.push(keyword.Id);
+
+                        toastr.success("Added that keyword to your list!");
+                    }
+                });
+
+            $("#keywordsTable").on("click",
+                ".btn-delete-keyword",
+                function() {
+                    var button = $(this);
+                    var id = parseInt(button.attr("data-keyword-id"));
+                    var index = $.inArray(id, keywordsIdArray);
+                    if (index !== -1) {
+                        keywordsIdArray.splice(index, 1);
+                        button.parents("li").remove();
+                        toastr.success("That keyword has been removed successfuly!");
+                    } else {
+                        toastr.error("Something unexpected happen");
+                    }
+                });
+
+            $("#addDish").validate();
+
+            $("#addDish").submit(function(e) {
+                e.preventDefault();
+
+                for (instance in CKEDITOR.instances) {
+                    CKEDITOR.instances[instance].updateElement();
+                }
+
+                var vm = {
+                    Name: $("#Name").val(),
+                    Description: $("#Description").val(),
+                    Price: parseFloat($("#Price").val()),
+                    CategoryId: parseInt($("#CategoryId").val()),
+                    RestaurantId: parseInt($("#RestaurantId").val()),
+                    KeywordIds: [0],
+                    __RequestVerificationToken: $("[name='__RequestVerificationToken']").val()
+                };
+
+                if (keywordsIdArray.length > 0) vm.KeywordIds = keywordsIdArray;
+                $.ajax({
+                    url: "/Dishes/Create",
+                    method: "POST",
+                    data: vm
+                }).done(function(data) {
+                    console.log(data);
+                    if (data.Status === true) {
+                        toastr.success(data.Message);
+                        setTimeout(function() {
+                                window.location.href = window.location.origin + data.ReturnUrl;
+                            },
+                            2000);
+                    }
+                    if (data.Status === false && data.BadRequest === true) {
+                        toastr.error(data.Message);
+                        setTimeout(function() {
+                                window.location.href = window.location.origin + data.ReturnUrl;
+                            },
+                            1000);
+                    }
+                    if (data.Status === false && data.BadRequest === false) {
+                        toastr.error(data.Message);
+                        if (data.ReturnUrl != null) {
+                            setTimeout(function() {
+                                    window.location.href = window.location.origin + data.ReturnUrl;
+                                },
+                                1000);
+                        }
+                    }
+                }).fail(function() {
+                    toastr.error("Something unexpected happend!");
+                });
+            });
+        });
+    </script>
+}

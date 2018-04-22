@@ -1,0 +1,117 @@
+﻿@model IEnumerable<FBru.DTO.DishWithCategoryAndRestaurantDto>
+@{
+    ViewBag.Title = "Dishes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section styles {
+    @Styles.Render("~/content/datatables")
+}
+<div class="row">
+    <div class="col-sm-12">
+        @Html.AntiForgeryToken()
+        <div class="form-group">@Html.ActionLink("CREATE DISH", "Create", null, new {@class = "btn btn-success btn-sm"})</div>
+        <table id="dishesTable" class="table table-striped table-bordered table-hover" width="100%">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Image</th>
+                <th>Category</th>
+                <th>Restaurant</th>
+                <th>Price</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Name</td>
+                    <td>@Html.Raw(item.ImageUrl != null ? $"<a href='#' class='btn-view-image' data-image-url='/{item.ImageUrl}' data-image-title='{item.Name}' data-toggle='modal' data-target='#imageModel'><img src='/{item.ImageUrl}' class='img-responsive' style='width: 100px;'/></a>" : "No")</td>
+                    <td>@Html.ActionLink(item.Category.Name, "Detail", "Categories", new {id = item.Category.Id}, new {@class = "btn-link"})</td>
+                    <td>@Html.ActionLink(item.Restaurant.Name, "Detail", "Restaurants", new {id = item.Restaurant.Id}, new {@class = "btn-link"})</td>
+                    <td>@item.Price</td>
+                    <td>
+                        @Html.ActionLink("Edit", "Edit", new {id = item.Id}, new {@class = "btn btn-sm btn-warning"})
+                        @Html.ActionLink("Detail", "Detail", new {id = item.Id}, new {@class = "btn btn-sm btn-info"})
+                        <button class="btn btn-sm btn-danger btn-delete" data-dish-id="@item.Id">Delete</button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="imageModel" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+                <img class="img-responsive img-thumbnail"/>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/datatables")
+    <script>
+        $(document).ready(function() {
+            var table = $("#dishesTable").DataTable({
+                responsive: true,
+                bSort: true
+            });
+
+            $("#dishesTable .btn-delete").on("click",
+                function() {
+                    var button = $(this);
+                    bootbox.confirm("Are you sure you want to delete this dish?",
+                        function(result) {
+                            if (result) {
+                                var addAntiForgeryToken = function(data) {
+                                    data.__RequestVerificationToken = $("[name='__RequestVerificationToken']").val();
+                                    return data;
+                                };
+                                $.ajax({
+                                    url: "/Dishes/Delete",
+                                    data: addAntiForgeryToken({ id: button.attr("data-dish-id") }),
+                                    method: "POST"
+                                }).done(function(data) {
+                                    if (data.Status === true) {
+                                        table.row(button.parents("tr")).remove().draw();
+                                        toastr.success(data.Message);
+                                    }
+                                    if (data.Status === false && data.BadRequest === true) {
+                                        toastr.error(data.Message);
+                                        setTimeout(function() {
+                                                window.location.href = window.location.origin + data.ReturnUrl;
+                                            },
+                                            1000);
+                                    }
+                                }).fail(function() {
+                                    toastr.error("Something unexpected happend!");
+                                });
+                            }
+                        });
+                });
+
+            $("#dishesTable .btn-view-image").on("click",
+                function() {
+                    var button = $(this);
+                    var modalImage = $("#imageModel .img-responsive");
+                    var modalTitle = $("#imageModel .modal-title");
+                    var imageUrl = button.attr("data-image-url");
+                    var title = button.attr("data-image-title");
+                    modalImage.attr("src", imageUrl);
+                    modalTitle.text(title);
+                });
+        });
+    </script>
+}

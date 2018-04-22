@@ -1,0 +1,269 @@
+﻿@model FBru.DTO.DishDto
+
+@{
+    ViewBag.Title = "Detail";
+    ViewBag.SubTitle = $"Dish: {Model.Name} - Id: {Model.Id}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section styles {
+    @Styles.Render("~/content/datatables")
+}
+<div class="row">
+    <div class="col-sm-12">
+        <div class="form-group">
+            @Html.ActionLink("Edit", "Edit", new {id = Model.Id}, new {@class = "btn btn-warning btn-sm"})
+            <a href="#" class="btn btn-danger btn-sm btn-delete-dish" data-dish-id="@Model.Id">Delete</a>
+        </div>
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.Id, new {data_dish_id = Model.Id})
+        <h3>Dish detail</h3>
+        <table id="dishDetailTable" class="table table-bordered table-striped table-responsive">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Detail</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Id</td>
+                <td>@Model.Id</td>
+            </tr>
+            <tr>
+                <td>Name</td>
+                <td>@Model.Name</td>
+            </tr>
+            <tr>
+                <td>Price</td>
+                <td>@Model.Price</td>
+            </tr>
+            <tr>
+                <td>Category</td>
+                <td>@Html.ActionLink(Model.Category.Name, "Detail", "Categories", new {id = Model.Category.Id}, new {@class = "btn-link"})</td>
+            </tr>
+            <tr>
+                <td>Restaurant</td>
+                <td>@Html.ActionLink(Model.Restaurant.Name, "Detail", "Restaurants", new {id = Model.Restaurant.Id}, new {@class = "btn-link"})</td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="form-group">
+            <h3 class="margin-top-30">Keywords</h3>
+            @Html.ActionLink("Create Keyword", "Create", "Keywords", null, new {@class = "btn btn-success btn-sm"})
+        </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                <ul class="list-group list-inline" id="keywordsTable">
+                    @foreach (var item in Model.Keywords)
+                    {
+                        <li class="list-group-item">
+                            <a href="@Url.Action("Detail", "Keywords", new {id = item.Id})">
+                                <span class="text-info">@item.Name</span>
+                            </a>
+                            <a href="#" data-keyword-id="@item.Id" class="btn-delete-keyword">
+                                <i class="fa fa-remove text-danger"></i>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+        @if (Model.Description != null)
+        {
+            <div class="form-group">
+                <h3 class="margin-top-30">Description</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body panel-fixed">
+                        @Html.Raw(HttpUtility.HtmlDecode(Model.Description))
+                    </div>
+                </div>
+            </div>
+        }
+        <div class="form-group">
+            <h3 class="margin-top-30">Images</h3>
+            @Html.ActionLink("Create Image", "Create", "Images", new {id = Model.Id}, new {@class = "btn btn-success btn-sm"})
+        </div>
+        <table id="imagesTable" class="table table-striped table-bordered" width="100%">
+            <thead>
+            <tr>
+                <td>Id</td>
+                <td>Name</td>
+                <td>Image</td>
+                <td>Display</td>
+                <td>Action</td>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.Images)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Name</td>
+                    <td>
+                        <a href="#" class="btn-view-image" data-image-url="/@item.Url" data-image-title="@item.Name" data-toggle="modal" data-target="#imageModel">
+                            <img src="~/@item.Url" class="img-responsive" alt="@item.Name" style="max-width: 200px"/>
+                        </a>
+                    </td>
+                    <td>@Html.DisplayFor(modelItem => item.IsDisplay)</td>
+                    <td>
+                        @Html.ActionLink("Edit", "Edit", "Images", new {id = item.Id}, new {@class = "btn btn-sm btn-warning"})
+                        <button class="btn btn-sm btn-danger btn-delete-image" data-image-id="@item.Id">Delete</button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        <hr/>
+        <div>
+            @Html.ActionLink("Back to List", "Index")
+        </div>
+    </div>
+</div>
+
+<div id="imageModel" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+                <img class="img-responsive img-thumbnail"/>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+@section scripts {
+    @Scripts.Render("~/bundles/datatables")
+    <script>
+        $(document).ready(function() {
+            var table = $("#imagesTable").DataTable({
+                responsive: true,
+                bSort: true
+            });
+
+            var addAntiForgeryToken = function(data) {
+                data.__RequestVerificationToken = $("[name='__RequestVerificationToken']").val();
+                return data;
+            };
+
+            $(".btn-delete-dish").on("click",
+                function() {
+                    var button = $(this);
+                    bootbox.confirm("Are you sure you want to delete this dish?",
+                        function(result) {
+                            if (result) {
+                                $.ajax({
+                                    url: "/Dishes/Delete",
+                                    data: addAntiForgeryToken({ id: button.attr("data-dish-id") }),
+                                    method: "POST"
+                                }).done(function(data) {
+                                    if (data.Status === true) {
+                                        toastr.success(data.Message);
+                                        setTimeout(function() {
+                                                window.location.href = window.location.origin + data.ReturnUrl;
+                                            },
+                                            1000);
+                                    }
+                                    if (data.Status === false && data.BadRequest === true) {
+                                        toastr.error(data.Message);
+                                        setTimeout(function() {
+                                                window.location.href = window.location.origin + data.ReturnUrl;
+                                            },
+                                            1000);
+                                    }
+                                    if (data.Status === false && data.BadRequest === false) {
+                                        toastr.error(data.Message);
+                                        if (data.ReturnUrl != null) {
+                                            setTimeout(function() {
+                                                    window.location.href = window.location.origin + data.ReturnUrl;
+                                                },
+                                                1000);
+                                        }
+                                    }
+                                }).fail(function() {
+                                    toastr.error("Something unexpected happend!");
+                                });
+                            }
+                        });
+                });
+
+            $("#imagesTable .btn-delete-image").on("click",
+                function() {
+                    var button = $(this);
+                    bootbox.confirm("Are you sure you want to delete this image?",
+                        function(result) {
+                            if (result) {
+                                $.ajax({
+                                    url: "/Images/Delete",
+                                    data: addAntiForgeryToken({ id: button.attr("data-image-id") }),
+                                    method: "POST"
+                                }).done(function(data) {
+                                    if (data.Status === true) {
+                                        table.row(button.parents("tr")).remove().draw();
+                                        toastr.success(data.Message);
+                                    }
+                                    if (data.Status === false && data.BadRequest === true) {
+                                        toastr.error(data.Message);
+                                        setTimeout(function() {
+                                                window.location.href = window.location.origin + data.ReturnUrl;
+                                            },
+                                            1000);
+                                    }
+                                }).fail(function() {
+                                    toastr.error("Something unexpected happend!");
+                                });
+                            }
+                        });
+                });
+
+            $("#keywordsTable .btn-delete-keyword").on("click",
+                function() {
+                    var button = $(this);
+                    bootbox.confirm("Are you sure you want to delete this keyword over this dish?",
+                        function(result) {
+                            if (result) {
+                                $.ajax({
+                                    url: "/Keywords/DeleteDish",
+                                    data: addAntiForgeryToken({
+                                        keywordId: button.attr("data-keyword-id"),
+                                        dishId: $("#Id").attr("data-dish-id")
+                                    }),
+                                    method: "POST"
+                                }).done(function(data) {
+                                    if (data.Status === true) {
+                                        toastr.success("That keyword has been removed!");
+                                        button.parents("li").remove().draw();
+                                    }
+                                    if (data.Status === false && data.BadRequest === true) {
+                                        toastr.error(data.Message);
+                                        setTimeout(function() {
+                                                window.location.href = window.location.origin + data.ReturnUrl;
+                                            },
+                                            1000);
+                                    }
+                                }).fail(function() {
+                                    toastr.error("Something unexpected happend!");
+                                });
+                            }
+                        });
+                });
+
+            $("#imagesTable .btn-view-image").on("click",
+                function() {
+                    var button = $(this);
+                    var modalImage = $("#imageModel .img-responsive");
+                    var modalTitle = $("#imageModel .modal-title");
+                    var imageUrl = button.attr("data-image-url");
+                    var title = button.attr("data-image-title");
+                    modalImage.attr("src", imageUrl);
+                    modalTitle.text(title);
+                });
+        });
+    </script>
+}

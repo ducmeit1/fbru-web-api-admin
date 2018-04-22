@@ -1,0 +1,62 @@
+﻿@model FBru.Repository.Entities.Advertisement
+
+@{
+    ViewBag.Title = "Detail";
+    ViewBag.SubTitle = $"Advertisement - ID: {Model.Id}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-sm-12">
+        <div>
+            <img src="~/@Model.ImageUrl" class="img-responsive img-rounded"/>
+        </div>
+        <table class="table table-bordered table-striped table-responsive margin-top-30">
+            <tr>
+                <th>Name</th>
+                <th>Detail</th>
+            </tr>
+            <tr>
+                <td>ID</td>
+                <td>@Model.Id</td>
+            </tr>
+            <tr>
+                <td>Order</td>
+                <td>@Model.Order</td>
+            </tr>
+            <tr>
+                <td>Title</td>
+                <td>@Model.Title</td>
+            </tr>
+            <tr>
+                <td>Sub Title</td>
+                <td>@Model.SubTitle</td>
+            </tr>
+            <tr>
+                <td>Action Url</td>
+                <td>@Model.ActionUrl</td>
+            </tr>
+            <tr>
+                <td>Display</td>
+                <td>@Html.DisplayFor(model => Model.IsDisplay)</td>
+            </tr>
+        </table>
+        @if (Model.Description != null)
+        {
+            <div class="form-group">
+                <h3 class="margin-top-30">Description</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-body panel-fixed">
+                        @Html.Raw(HttpUtility.HtmlDecode(Model.Description))
+                    </div>
+                </div>
+            </div>
+        }
+        <hr/>
+        <p>
+            @Html.ActionLink("Edit", "Edit", new {id = Model.Id}) |
+            @Html.ActionLink("Back to List", "Index")
+        </p>
+    </div>
+</div>

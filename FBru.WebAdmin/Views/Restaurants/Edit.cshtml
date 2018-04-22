@@ -1,0 +1,219 @@
+﻿@model FBru.Repository.Entities.Restaurant
+
+@{
+    ViewBag.Title = "Edit";
+    ViewBag.SubTitle = "Fill in all information to update for this restaurant";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section styles {
+    @Styles.Render("~/content/timepicker")
+}
+<div class="row">
+    <div class="col-sm-12">
+        <form id="editRestaurant" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <div class="form-horizontal">
+                @Html.ValidationSummary(true, "", new {@class = "text-danger"})
+                @Html.HiddenFor(model => model.Id)
+                <div class="form-group">
+                    <label name="ImageUrl" class="control-label col-md-2">Current Image</label>
+                    <div class="col-md-10">
+                        @Html.Raw(Model.ImageUrl != null ? $"<a href='/{Model.ImageUrl}' target='_blank'><img src='/{Model.ImageUrl}' class='img-responsive img-rounded'/></a>" : "No")
+                    </div>
+                </div>
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Name, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.Name, new {htmlAttributes = new {@class = "form-control"}})
+                        @Html.ValidationMessageFor(model => model.Name, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Address, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.Address, new {htmlAttributes = new {@class = "form-control"}})
+                        @Html.ValidationMessageFor(model => model.Address, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.Description, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @if (Model.Description != null)
+                        {
+                            var Description = HttpUtility.HtmlDecode(Model.Description);
+                            @Html.TextAreaFor(model => Description, new {htmlAttributes = new {@class = "form-control"}})
+                        }
+                        else
+                        {
+                            @Html.TextAreaFor(model => model.Description, new {htmlAttributes = new {@class = "form-control"}})
+                        }
+                        @Html.ValidationMessageFor(model => model.Description, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.PhoneNumber, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.PhoneNumber, new {htmlAttributes = new {@class = "form-control"}})
+                        @Html.ValidationMessageFor(model => model.PhoneNumber, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.OpenTime, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.OpenTime, new {htmlAttributes = new {@class = "form-control"}})
+                        @Html.ValidationMessageFor(model => model.OpenTime, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.CloseTime, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.CloseTime, new {htmlAttributes = new {@class = "form-control"}})
+                        @Html.ValidationMessageFor(model => model.CloseTime, "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.IsHalal, new {@class = "control-label col-md-2"})
+                    <div class="col-md-10">
+                        <div class="checkbox" style="margin-left: 20px">
+                            @Html.EditorFor(model => model.IsHalal)
+                            @Html.ValidationMessageFor(model => model.IsHalal, "", new {@class = "text-danger"})
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="ImagePostedFileBase" class="control-label col-md-2">Upload Image</label>
+                    <div class="col-md-10">
+                        <input id="ImagePostedFileBase" type="file" name="ImagePostedFileBase" accept="image/*" class="form-control"/>
+                        @Html.ValidationMessage("ImagePostedFileBase", "", new {@class = "text-danger"})
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-offset-2 col-md-10">
+                        <button class="btn btn-success btn-sm">Save</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <hr/>
+        <div>
+            @Html.ActionLink("Back to List", "Index")
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/timepicker")
+    @Scripts.Render("~/bundles/ckeditor")
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+        $(document).ready(function() {
+
+            CKEDITOR.replace("Description",
+                {
+                    htmlEncodeOutput: true
+                });
+
+            $("#OpenTime").timepicki();
+            $("#CloseTime").timepicki();
+
+            $("#editRestaurant").validate();
+
+            $("#editRestaurant").submit(function(e) {
+                e.preventDefault();
+
+                for (instance in CKEDITOR.instances) {
+                    CKEDITOR.instances[instance].updateElement();
+                }
+
+                var getOpenTime = function() {
+                    var time = $("#OpenTime");
+                    var h = parseInt(time.data("timepickiTim"));
+                    var m = parseInt(time.data("timepickiMini"));
+                    var w = time.data("timepickiMeri");
+                    if (w === "PM") {
+                        h = h + 12;
+                    }
+                    return h + ":" + m + ":00";
+                };
+
+                var getCloseTime = function() {
+                    var time = $("#CloseTime");
+                    var h = parseInt(time.data("timepickiTim"));
+                    var m = parseInt(time.data("timepickiMini"));
+                    var w = time.data("timepickiMeri");
+                    if (w === "PM") {
+                        h = h + 12;
+                    }
+                    return h + ":" + m + ":00";
+                };
+
+                var filesSelected = $("#ImagePostedFileBase").get(0).files;
+                var formData = new FormData();
+                formData.append("Id", $("#Id").val());
+                formData.append("Name", $("#Name").val());
+                formData.append("Description", $("#Description").val());
+                formData.append("Address", $("#Address").val());
+                formData.append("PhoneNumber", $("#PhoneNumber").val());
+                formData.append("IsHalal", $("#IsHalal").is(":checked"));
+                formData.append("FileUpload", filesSelected[0]);
+                if ($("#OpenTime").val().indexOf("AM") !== -1 || $("#OpenTime").val().indexOf("PM") !== -1) {
+                    formData.append("OpenTime", getOpenTime());
+                } else {
+                    formData.append("OpenTime", $("#OpenTime").val());
+                }
+
+                if ($("#CloseTime").val().indexOf("AM") !== -1 || $("#CloseTime").val().indexOf("PM") !== -1) {
+                    formData.append("CloseTime", getOpenTime());
+                } else {
+                    formData.append("CloseTime", $("#CloseTime").val());
+                }
+                formData.append("__RequestVerificationToken", $("[name='__RequestVerificationToken']").val());
+
+
+                $.ajax({
+                    url: "/Restaurants/Edit",
+                    method: "post",
+                    data: formData,
+                    dataType: "json",
+                    processData: false,
+                    contentType: false
+                }).done(function(data) {
+                    if (data.Status === true) {
+                        toastr.success(data.Message);
+                        setTimeout(function() {
+                                window.location.href = window.location.origin + data.ReturnUrl;
+                            },
+                            1000);
+                    }
+                    if (data.Status === false && data.BadRequest === true) {
+                        toastr.error(data.Message);
+                        setTimeout(function() {
+                                window.location.href = window.location.origin + data.ReturnUrl;
+                            },
+                            1000);
+                    }
+                    if (data.Status === false && data.BadRequest === false) {
+                        toastr.error(data.Message);
+                        if (data.ReturnUrl != null) {
+                            setTimeout(function() {
+                                    window.location.href = window.location.origin + data.ReturnUrl;
+                                },
+                                1000);
+                        }
+                    }
+                }).fail(function() {
+                    toastr.error("Something unexpected happend!");
+                });
+            });
+        });
+    </script>
+}

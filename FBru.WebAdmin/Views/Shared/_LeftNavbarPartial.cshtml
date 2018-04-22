@@ -1,0 +1,83 @@
+﻿<!-- LEFT SIDEBAR -->
+<div id="sidebar-nav" class="sidebar">
+    <div class="sidebar-scroll">
+        <nav>
+            <ul class="nav">
+                <li>
+                    <a href="@Url.Action("Index", "Home")" target="_self">
+                        <i class="fa fa-dashboard" aria-hidden="true"></i> <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.Action("Index", "Advertisements")" target="_self">
+                        <i class="fa fa-image" aria-hidden="true"></i> <span>Advertisements</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.Action("Index", "Blogs")" target="_self">
+                        <i class="fa fa-rss-square" aria-hidden="true"></i> <span>Blogs</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.Action("Index", "Restaurants")" target="_self">
+                        <i class="fa fa-building" aria-hidden="true"></i> <span>Restaurants</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#dishes" data-toggle="collapse" data-target="#dishes">
+                        <i class="fa fa-cutlery" aria-hidden="true"></i> <span>Foods</span> <i class="icon-submenu fa fa-arrow-left"></i>
+                    </a>
+                    <div id="dishes" class="collapse">
+                        <ul class="nav">
+                            <li>
+                                <a href="@Url.Action("Index", "Categories")" target="_self">
+                                    <i class="fa fa-folder" aria-hidden="true"></i> <span>Categories</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="@Url.Action("Index", "Dishes")" target="_self">
+                                    <i class="fa fa-glass" aria-hidden="true"></i> <span>Dishes</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="@Url.Action("Index", "Keywords")" target="_self">
+                                    <i class="fa fa-tag" aria-hidden="true"></i> <span>Keywords</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="@Url.Action("Index", "Images")" target="_self">
+                                    <i class="fa fa-image" aria-hidden="true"></i> <span>Images</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                <li>
+                    <a href="#users" data-toggle="collapse" data-target="#users">
+                        <i class="fa fa-user-plus"></i> <span>Users</span> <i class="icon-submenu fa fa-arrow-left"></i>
+                    </a>
+                    <div id="users" class="collapse">
+                        <ul class="nav">
+                            <li>
+                                <a href="@Url.Action("Index", "Users")" target="_self">
+                                    <i class="fa fa-user-secret" aria-hidden="true"></i> <span>Users</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="@Url.Action("Index", "UserGroups")" target="_self">
+                                    <i class="fa fa-group" aria-hidden="true"></i> <span>User Groups</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                <li>
+                    <a href="@Url.Action("Logout", "Account")" target="_self">
+                        <i class="fa fa-sign-out" aria-hidden="true"></i> <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+<!-- END LEFT SIDEBAR -->
